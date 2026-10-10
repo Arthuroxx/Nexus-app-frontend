@@ -1,0 +1,114 @@
+:host {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100dvh;
+  padding: 28px clamp(20px, 5vw, 56px) 26px;
+}
+
+canvas[appNetworkBackground] {
+  view-transition-name: nexus-canvas;
+}
+
+.page-header app-nexus-logo {
+  view-transition-name: nexus-logo;
+}
+
+.page-footer {
+  view-transition-name: nexus-footer;
+}
+
+.page-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.page-main {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.stage {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.page-footer {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+}
+
+.page-footer p {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.page-main::before,
+.page-main::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+  background: #fff;
+  filter: blur(46px);
+  opacity: 0.13;
+  animation: drift 20s ease-in-out infinite alternate;
+}
+
+.page-main::before {
+  width: 220px;
+  height: 220px;
+  left: calc(50% - 300px);
+  top: calc(50% - 190px);
+}
+
+.page-main::after {
+  width: 260px;
+  height: 260px;
+  left: calc(50% + 70px);
+  top: calc(50% + 20px);
+  opacity: 0.1;
+  animation-duration: 26s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes drift {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(46px, -34px);
+  }
+}
+
+@media (max-width: 560px) {
+  .page-main::before {
+    left: calc(50% - 200px);
+  }
+
+  .page-main::after {
+    left: calc(50% + 10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-main::before,
+  .page-main::after {
+    animation: none;
+  }
+}

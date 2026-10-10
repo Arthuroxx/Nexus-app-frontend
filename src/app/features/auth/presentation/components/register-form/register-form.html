@@ -1,0 +1,148 @@
+<section class="card">
+  <h1 id="register-title" class="title">Crea tu cuenta</h1>
+  <p class="subtitle">Únete a Nexus y empieza a registrar tus PR's.</p>
+
+  <form class="auth-form" (submit)="onSubmit($event)" novalidate>
+    @if (feedback(); as message) {
+      <p
+        class="feedback"
+        [class.feedback--error]="message.kind === 'error'"
+        [class.feedback--ok]="message.kind === 'success'"
+        role="status"
+        aria-live="polite"
+      >
+        {{ message.text }}
+      </p>
+    }
+
+    <div class="field">
+      <label class="field-label" for="name">Nombre completo</label>
+      <div class="control">
+        <input
+          id="name"
+          class="input"
+          type="text"
+          autocomplete="name"
+          placeholder="Tu nombre"
+          [formField]="registerForm.name"
+          [attr.aria-invalid]="nameError() ? 'true' : null"
+          [attr.aria-describedby]="nameError() ? 'name-error' : null"
+        />
+      </div>
+      @if (nameError(); as error) {
+        <p id="name-error" class="field-error">{{ error }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="email">Correo electrónico</label>
+      <div class="control">
+        <input
+          id="email"
+          class="input"
+          type="email"
+          autocomplete="email"
+          placeholder="tu@correo.com"
+          [formField]="registerForm.email"
+          [attr.aria-invalid]="emailError() ? 'true' : null"
+          [attr.aria-describedby]="emailError() ? 'email-error' : null"
+        />
+      </div>
+      @if (emailError(); as error) {
+        <p id="email-error" class="field-error">{{ error }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="password">Contraseña</label>
+      <div class="control">
+        <input
+          id="password"
+          class="input has-toggle"
+          [type]="showPassword() ? 'text' : 'password'"
+          autocomplete="new-password"
+          placeholder="••••••••"
+          [formField]="registerForm.password"
+          [attr.aria-invalid]="passwordError() ? 'true' : null"
+          [attr.aria-describedby]="passwordError() ? 'password-error' : null"
+        />
+        <button
+          type="button"
+          class="toggle"
+          (click)="togglePassword()"
+          [attr.aria-pressed]="showPassword()"
+          [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+        >
+          {{ showPassword() ? 'Ocultar' : 'Ver' }}
+        </button>
+      </div>
+      @if (passwordError(); as error) {
+        <p id="password-error" class="field-error">{{ error }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="confirmPassword">Confirmar contraseña</label>
+      <div class="control">
+        <input
+          id="confirmPassword"
+          class="input has-toggle"
+          [type]="showConfirmPassword() ? 'text' : 'password'"
+          autocomplete="new-password"
+          placeholder="••••••••"
+          [formField]="registerForm.confirmPassword"
+          [attr.aria-invalid]="confirmPasswordError() ? 'true' : null"
+          [attr.aria-describedby]="confirmPasswordError() ? 'confirmPassword-error' : null"
+        />
+        <button
+          type="button"
+          class="toggle"
+          (click)="toggleConfirmPassword()"
+          [attr.aria-pressed]="showConfirmPassword()"
+          [attr.aria-label]="
+            showConfirmPassword()
+              ? 'Ocultar confirmación de contraseña'
+              : 'Mostrar confirmación de contraseña'
+          "
+        >
+          {{ showConfirmPassword() ? 'Ocultar' : 'Ver' }}
+        </button>
+      </div>
+      @if (confirmPasswordError(); as error) {
+        <p id="confirmPassword-error" class="field-error">{{ error }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <div class="row">
+        <label class="remember">
+          <input
+            type="checkbox"
+            [formField]="registerForm.acceptTerms"
+            [attr.aria-invalid]="termsError() ? 'true' : null"
+            [attr.aria-describedby]="termsError() ? 'terms-error' : null"
+          />
+          <span>Acepto los términos y condiciones</span>
+        </label>
+      </div>
+      @if (termsError(); as error) {
+        <p id="terms-error" class="field-error">{{ error }}</p>
+      }
+    </div>
+
+    <button type="submit" class="submit" [disabled]="submitting()">
+      <span>{{ submitting() ? 'Creando cuenta…' : 'Crear cuenta' }}</span>
+      <svg class="arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path
+          d="M3 8h9M8.5 4l4 4-4 4"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+  </form>
+
+  <p class="signup">¿Ya tienes una cuenta? <a routerLink="/">Inicia sesión</a></p>
+</section>

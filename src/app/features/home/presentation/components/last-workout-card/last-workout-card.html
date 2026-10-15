@@ -1,0 +1,24 @@
+<article class="card">
+  <h2 class="card__title">Último entrenamiento</h2>
+
+  @if (workout(); as last) {
+    <p class="card__name">{{ last.name }}</p>
+
+    @if (formattedDate(); as when) {
+      <p class="card__when">{{ when }}</p>
+    }
+
+    <dl class="card__meta">
+      <div class="meta">
+        <dt>Duración</dt>
+        <dd>{{ last.durationMinutes }} min</dd>
+      </div>
+      <div class="meta">
+        <dt>Volumen</dt>
+        <dd>{{ volume() }}</dd>
+      </div>
+    </dl>
+  } @else {
+    <p class="card__empty">Aún no has registrado entrenamientos.</p>
+  }
+</article>

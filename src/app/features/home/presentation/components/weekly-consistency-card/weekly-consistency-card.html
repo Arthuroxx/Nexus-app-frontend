@@ -1,0 +1,34 @@
+<article class="card">
+  <h2 class="card__title">Constancia de la semana</h2>
+
+  <ul class="week" aria-label="Estado de cada día de la semana">
+    @for (day of days(); track day.date) {
+      <li class="day" [attr.data-status]="day.status">
+        <span class="day__label" aria-hidden="true">{{ day.short }}</span>
+        <span class="day__dot" aria-hidden="true"></span>
+        <span class="visually-hidden">{{ day.long }}: {{ day.statusLabel }}</span>
+      </li>
+    }
+  </ul>
+
+  <p class="card__summary">{{ done() }} de {{ planned() }} entrenamientos completados</p>
+
+  <div
+    class="progress"
+    role="progressbar"
+    aria-label="Progreso de entrenamientos de la semana"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    [attr.aria-valuenow]="completion()"
+  >
+    <div class="progress__bar" [style.width.%]="completion()"></div>
+  </div>
+
+  <p class="card__streak">
+    @if (streakWeeks() > 0) {
+      {{ streakWeeks() }} {{ streakWeeks() === 1 ? 'semana' : 'semanas' }} seguidas
+    } @else {
+      Empieza tu racha esta semana
+    }
+  </p>
+</article>

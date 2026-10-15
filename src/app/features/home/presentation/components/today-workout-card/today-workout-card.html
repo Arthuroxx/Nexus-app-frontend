@@ -1,0 +1,28 @@
+<article class="card">
+  <h2 class="card__title">Entrenamiento de hoy</h2>
+
+  @if (workout(); as today) {
+    <p class="card__name">{{ today.name }}</p>
+
+    @if (today.focusTag; as focus) {
+      <span class="card__tag">{{ focus }}</span>
+    }
+
+    <dl class="card__meta">
+      <div class="meta">
+        <dt>Duración</dt>
+        <dd>{{ today.estimatedMinutes }} min</dd>
+      </div>
+      <div class="meta">
+        <dt>Ejercicios</dt>
+        <dd>{{ today.exerciseCount }}</dd>
+      </div>
+      <div class="meta">
+        <dt>Intensidad</dt>
+        <dd>{{ intensityLabel() }}</dd>
+      </div>
+    </dl>
+  } @else {
+    <p class="card__empty">No tienes un entrenamiento programado para hoy.</p>
+  }
+</article>

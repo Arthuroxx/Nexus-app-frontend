@@ -1,0 +1,10 @@
+<article class="card">
+  <h2 class="card__title">Volumen de la semana</h2>
+
+  @if (stats(); as data) {
+    <p class="card__value">{{ volume() }}</p>
+    <p class="card__hint">{{ data.weekActiveMinutes }} minutos activos esta semana</p>
+  } @else {
+    <p class="card__empty">Sin volumen registrado esta semana.</p>
+  }
+</article>

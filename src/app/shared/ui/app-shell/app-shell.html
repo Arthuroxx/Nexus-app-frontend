@@ -1,0 +1,80 @@
+<canvas appNetworkBackground aria-hidden="true"></canvas>
+
+@if (menuOpen()) {
+  <button
+    type="button"
+    class="scrim"
+    (click)="closeMenu()"
+    aria-label="Cerrar menú de navegación"
+    tabindex="-1"
+  ></button>
+}
+
+<div class="shell">
+  <aside id="app-sidebar" class="sidebar" [class.sidebar--open]="menuOpen()">
+    <a class="brand" routerLink="/inicio" (click)="closeMenu()" aria-label="Nexus, ir al inicio">
+      <app-nexus-logo />
+    </a>
+
+    <nav class="nav" aria-label="Secciones de la aplicación">
+      <ul class="nav__list">
+        @for (item of navItems; track item.path) {
+          <li>
+            <a
+              class="nav__link"
+              [routerLink]="item.path"
+              routerLinkActive="is-active"
+              [routerLinkActiveOptions]="{ exact: item.exact }"
+              (click)="closeMenu()"
+            >
+              {{ item.label }}
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <div class="account">
+      <div class="account__row">
+        <span class="account__avatar" aria-hidden="true">{{ avatarLetter() }}</span>
+        <div class="account__info">
+          <p class="account__name">{{ accountName() }}</p>
+          @if (user(); as current) {
+            <p class="account__email">{{ current.email }}</p>
+          } @else {
+            <p class="account__email">Sesión activa</p>
+          }
+        </div>
+      </div>
+
+      <button type="button" class="account__signout" (click)="signOut()">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <button
+        type="button"
+        class="topbar__toggle"
+        (click)="toggleMenu()"
+        [attr.aria-expanded]="menuOpen()"
+        aria-controls="app-sidebar"
+        aria-label="Abrir menú de navegación"
+      >
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+          <path
+            d="M3 6h16M3 11h16M3 16h16"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
+      <span class="topbar__title">Nexus</span>
+    </header>
+
+    <main class="main">
+      <router-outlet />
+    </main>
+  </div>
+</div>

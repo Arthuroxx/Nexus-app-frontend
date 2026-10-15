@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormField, email, form, minLength, required, submit } from '@angular/forms/signals';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@features/auth/application/auth.service';
 import { LoginCredentials } from '@features/auth/domain/models/login-credentials';
 
@@ -17,6 +17,7 @@ interface Feedback {
 })
 export class LoginForm {
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   private readonly model = signal<LoginCredentials>({
     email: '',
@@ -66,11 +67,11 @@ export class LoginForm {
         this.submitting.set(true);
         try {
           const outcome = await this.authService.signIn(field().value());
-          this.feedback.set(
-            outcome.kind === 'authenticated'
-              ? { kind: 'success', text: `Bienvenido, ${outcome.user.displayName}.` }
-              : { kind: 'error', text: outcome.message },
-          );
+          if (outcome.kind === 'authenticated') {
+            await this.router.navigate(['/inicio']);
+            return;
+          }
+          this.feedback.set({ kind: 'error', text: outcome.message });
         } catch {
           this.feedback.set({
             kind: 'error',

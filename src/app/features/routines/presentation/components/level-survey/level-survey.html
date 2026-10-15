@@ -1,0 +1,46 @@
+<section class="card survey" aria-labelledby="survey-title">
+  <div class="section-head">
+    <h2 id="survey-title" class="section-title">Descubre tu nivel</h2>
+    <p class="section-subtitle">
+      Responde estas preguntas y te recomendaremos rutinas adaptadas a ti.
+    </p>
+  </div>
+
+  <form class="survey__form" (submit)="submit($event)" novalidate>
+    @for (question of questions; track question.id) {
+      <fieldset class="survey__question">
+        <legend class="survey__prompt">{{ question.prompt }}</legend>
+        <div class="survey__options">
+          @for (option of question.options; track option.id) {
+            <label
+              class="survey__option"
+              [class.survey__option--selected]="isSelected(question.id, option.weight)"
+            >
+              <input
+                type="radio"
+                [name]="question.id"
+                [checked]="isSelected(question.id, option.weight)"
+                (change)="answer(question.id, option.weight)"
+              />
+              <span>{{ option.label }}</span>
+            </label>
+          }
+        </div>
+      </fieldset>
+    }
+
+    <div class="survey__footer">
+      <p class="survey__progress" role="status" aria-live="polite">
+        {{ answered() }}/{{ total }} respondidas
+        @if (complete()) {
+          @if (previewLevel(); as level) {
+            · Nivel sugerido: <strong>{{ level.label }}</strong>
+          }
+        }
+      </p>
+      <button type="submit" class="btn btn--primary" [disabled]="!complete()">
+        Ver mis rutinas recomendadas
+      </button>
+    </div>
+  </form>
+</section>

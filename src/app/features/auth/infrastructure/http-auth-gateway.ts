@@ -21,13 +21,17 @@ export class HttpAuthGateway extends AuthGateway {
 
   async authenticate(credentials: LoginCredentials): Promise<AuthenticationOutcome> {
     try {
-      await firstValueFrom(
+      const response = await firstValueFrom(
         this.http.post<TokenResponse>(`${environment.apiUrl}/auth/login`, {
           email: credentials.email,
           password: credentials.password,
         }),
       );
-      return this.authenticated(credentials.email, this.deriveName(credentials.email));
+      return this.authenticated(
+        credentials.email,
+        this.deriveName(credentials.email),
+        response.access_token,
+      );
     } catch (error) {
       return { kind: 'rejected', message: this.toMessage(error) };
     }
@@ -35,7 +39,7 @@ export class HttpAuthGateway extends AuthGateway {
 
   async register(credentials: RegisterCredentials): Promise<AuthenticationOutcome> {
     try {
-      await firstValueFrom(
+      const response = await firstValueFrom(
         this.http.post<TokenResponse>(`${environment.apiUrl}/auth/register`, {
           email: credentials.email,
           password: credentials.password,
@@ -43,14 +47,18 @@ export class HttpAuthGateway extends AuthGateway {
         }),
       );
       const displayName = credentials.name.trim() || this.deriveName(credentials.email);
-      return this.authenticated(credentials.email, displayName);
+      return this.authenticated(credentials.email, displayName, response.access_token);
     } catch (error) {
       return { kind: 'rejected', message: this.toMessage(error) };
     }
   }
 
-  private authenticated(email: string, displayName: string): AuthenticationOutcome {
-    return { kind: 'authenticated', user: { email, displayName } };
+  private authenticated(
+    email: string,
+    displayName: string,
+    accessToken: string,
+  ): AuthenticationOutcome {
+    return { kind: 'authenticated', user: { email, displayName }, accessToken };
   }
 
   private deriveName(email: string): string {

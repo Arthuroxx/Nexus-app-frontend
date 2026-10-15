@@ -5,6 +5,7 @@ import { RegisterCredentials } from '@features/auth/domain/models/register-crede
 import { AuthGateway } from '@features/auth/domain/ports/auth-gateway';
 
 const SIMULATED_LATENCY_MS = 650;
+const MOCK_ACCESS_TOKEN = 'mock-access-token';
 
 @Service()
 export class MockAuthGateway extends AuthGateway {
@@ -17,6 +18,7 @@ export class MockAuthGateway extends AuthGateway {
     return {
       kind: 'authenticated',
       user: { email: credentials.email, displayName },
+      accessToken: MOCK_ACCESS_TOKEN,
     };
   }
 
@@ -28,6 +30,7 @@ export class MockAuthGateway extends AuthGateway {
     return {
       kind: 'authenticated',
       user: { email: credentials.email, displayName },
+      accessToken: MOCK_ACCESS_TOKEN,
     };
   }
 }

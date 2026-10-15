@@ -1,0 +1,240 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+canvas[appNetworkBackground] {
+  view-transition-name: nexus-canvas;
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 100dvh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex-shrink: 0;
+  width: 232px;
+  padding: 24px 18px;
+  font-family: 'Manrope', var(--font-body);
+  background: rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(22px);
+  backdrop-filter: blur(22px);
+}
+
+.brand {
+  display: inline-flex;
+  align-self: flex-start;
+  border-radius: 10px;
+  text-decoration: none;
+  view-transition-name: nexus-logo;
+}
+
+.nav__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav__link {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 14px;
+  font-family: 'Manrope', var(--font-body);
+  font-size: 15px;
+  color: #9aa0b8;
+  text-decoration: none;
+  border-radius: 12px;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.nav__link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav__link.is-active {
+  color: #fff;
+  font-weight: 600;
+  background: rgba(229, 72, 77, 0.2);
+}
+
+.account {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.account__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.account__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  font-family: 'Manrope', var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #d63a40 0%, #a81f26 100%);
+  border-radius: 50%;
+}
+
+.account__info {
+  min-width: 0;
+}
+
+.account__name {
+  margin: 0;
+  font-family: 'Manrope', var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.account__email {
+  margin: 2px 0 0;
+  font-family: 'Manrope', var(--font-body);
+  font-size: 12px;
+  color: #9aa0b8;
+  word-break: break-all;
+}
+
+.account__signout {
+  height: 40px;
+  margin-top: 12px;
+  font-family: 'Manrope', var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+}
+
+.account__signout:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.account__signout:active {
+  transform: translateY(1px);
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  display: none;
+}
+
+.main {
+  flex: 1;
+  padding: 30px clamp(20px, 4vw, 48px) 48px;
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.5);
+  border: 0;
+  cursor: pointer;
+}
+
+.brand:focus-visible,
+.nav__link:focus-visible,
+.account__signout:focus-visible,
+.topbar__toggle:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+@media (max-width: 860px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar--open {
+    transform: translateX(0);
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px clamp(16px, 4vw, 28px);
+    background: rgba(10, 10, 11, 0.72);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .topbar__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  .topbar__title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .main {
+    padding: 24px clamp(16px, 4vw, 28px) 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
+  }
+}

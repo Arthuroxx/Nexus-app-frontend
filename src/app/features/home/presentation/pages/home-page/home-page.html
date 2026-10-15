@@ -1,0 +1,233 @@
+<div class="home-bg" aria-hidden="true"></div>
+
+<section class="dashboard" aria-labelledby="dashboard-title">
+  <header class="dashboard__header">
+    <h1 id="dashboard-title" class="dashboard__title">Tu panel</h1>
+    <p class="dashboard__subtitle">Resumen de tu actividad en Nexus.</p>
+  </header>
+
+  @if (loading()) {
+    <p class="dashboard__status" role="status">Cargando tu panel…</p>
+  } @else if (error(); as message) {
+    <div class="dashboard__status dashboard__status--error" role="alert">
+      <p class="dashboard__error-text">{{ message }}</p>
+      <button type="button" class="btn btn--outline" (click)="reload()">Reintentar</button>
+    </div>
+  } @else if (dashboard(); as home) {
+    <div class="stats">
+      <article class="stat">
+        <p class="lbl">Entrenamiento de hoy</p>
+        @if (home.todayWorkout; as workout) {
+          <p class="stat__value">{{ workout.name }}</p>
+          <div class="chips">
+            <span class="chip chip--accent">{{ intensityLabel(workout.intensity) }}</span>
+            <span class="chip">{{ workout.estimatedMinutes }} min</span>
+            <span class="chip">{{ workout.exerciseCount }} ejercicios</span>
+          </div>
+          <button type="button" class="btn btn--primary stat__action" routerLink="/inicio/rutinas">
+            Empezar
+          </button>
+        } @else {
+          <p class="stat__empty">No tienes un entrenamiento programado para hoy.</p>
+          <button type="button" class="btn btn--outline stat__action" routerLink="/inicio/rutinas">
+            Ver rutinas
+          </button>
+        }
+      </article>
+
+      <article class="stat">
+        <p class="lbl">Último entrenamiento</p>
+        @if (home.lastWorkout; as last) {
+          <p class="stat__value">{{ last.name }}</p>
+          <p class="stat__sub">{{ relative(last.finishedAt) }}</p>
+          <div class="chips">
+            <span class="chip">{{ last.durationMinutes }} min</span>
+            <span class="chip">{{ format(last.volumeKg) }} kg</span>
+          </div>
+        } @else {
+          <p class="stat__empty">Aún no has registrado entrenamientos.</p>
+        }
+      </article>
+
+      <article class="stat">
+        <p class="lbl">Volumen de la semana</p>
+        <p class="stat__value">{{ weekVolume() }}</p>
+        <p class="stat__sub">{{ weekMinutes() }} minutos activos esta semana</p>
+      </article>
+
+      <article class="stat">
+        <p class="lbl">Constancia de la semana</p>
+        <div class="week">
+          @for (day of home.week; track day.date) {
+            <div class="week__day">
+              <span class="week__letter">{{ weekdayLetter(day.weekday) }}</span>
+              <span
+                class="week__dot"
+                [class.is-done]="day.status === 'DONE'"
+                [class.is-today]="day.status === 'TODAY'"
+              ></span>
+            </div>
+          }
+        </div>
+        <p class="week__caption">
+          {{ home.weekProgress.done }} de {{ home.weekProgress.planned }} entrenamientos completados
+        </p>
+        <div class="bar">
+          <span class="bar__fill" [style.width.%]="progressPercent()"></span>
+        </div>
+        @if (hasWeekData()) {
+          <p class="week__message">Buen ritmo, sigue así</p>
+        } @else {
+          <p class="week__message">Empieza tu racha esta semana</p>
+        }
+      </article>
+    </div>
+
+    <div class="panels">
+      <article class="panel panel--chart">
+        <header class="panel__head">
+          <div>
+            <h2 class="panel__title">Progreso por grupo muscular</h2>
+            <p class="panel__sub">Evolución semanal · {{ selectedLabel() }}</p>
+          </div>
+          <div class="segmented-group">
+            <div class="segmented" role="group" aria-label="Métrica">
+              <button
+                type="button"
+                [class.is-active]="metric() === 'volumen'"
+                [attr.aria-pressed]="metric() === 'volumen'"
+                (click)="setMetric('volumen')"
+              >
+                Volumen
+              </button>
+              <button
+                type="button"
+                [class.is-active]="metric() === 'series'"
+                [attr.aria-pressed]="metric() === 'series'"
+                (click)="setMetric('series')"
+              >
+                Series
+              </button>
+            </div>
+            <div class="segmented" role="group" aria-label="Rango de semanas">
+              <button
+                type="button"
+                [class.is-active]="range() === 4"
+                [attr.aria-pressed]="range() === 4"
+                (click)="setRange(4)"
+              >
+                4 sem
+              </button>
+              <button
+                type="button"
+                [class.is-active]="range() === 8"
+                [attr.aria-pressed]="range() === 8"
+                (click)="setRange(8)"
+              >
+                8 sem
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div class="muscles">
+          @for (muscle of muscles; track muscle.key) {
+            <button
+              type="button"
+              class="muscle"
+              [class.is-active]="selectedMuscle() === muscle.key"
+              [attr.aria-pressed]="selectedMuscle() === muscle.key"
+              (click)="selectMuscle(muscle.key)"
+            >
+              {{ muscle.label }}
+            </button>
+          }
+        </div>
+
+        <div class="metrics">
+          <div class="metric">
+            <p class="lbl">Esta semana</p>
+            <p class="metric__value">{{ chartSummary().current }}</p>
+          </div>
+          <div class="metric">
+            <p class="lbl">Vs semana anterior</p>
+            <p class="metric__value metric__value--up">{{ chartSummary().delta }}</p>
+          </div>
+          <div class="metric">
+            <p class="lbl">Mejor semana</p>
+            <p class="metric__value">{{ chartSummary().best }}</p>
+          </div>
+        </div>
+
+        @if (chart(); as graph) {
+          <svg
+            class="chart"
+            [attr.viewBox]="'0 0 640 270'"
+            role="img"
+            [attr.aria-label]="'Progreso de ' + selectedLabel()"
+          >
+            <defs>
+              <linearGradient id="home-chart-area" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ff5a60" stop-opacity="0.38" />
+                <stop offset="100%" stop-color="#ff5a60" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+
+            @for (tick of graph.ticks; track $index) {
+              <line class="chart__grid" x1="56" x2="616" [attr.y1]="tick.y" [attr.y2]="tick.y" />
+              <text class="chart__ylabel" x="46" [attr.y]="tick.y + 4">{{ tick.value }}</text>
+            }
+
+            <path class="chart__area" [attr.d]="graph.areaPath" fill="url(#home-chart-area)" />
+            <path class="chart__line" [attr.d]="graph.linePath" />
+
+            @for (point of graph.points; track $index) {
+              <circle
+                class="chart__dot"
+                [attr.cx]="point.x"
+                [attr.cy]="point.y"
+                [attr.r]="$last ? 6 : 4"
+              />
+            }
+
+            @for (label of graph.labels; track $index) {
+              <text class="chart__xlabel" [attr.x]="label.x" y="262">{{ label.text }}</text>
+            }
+          </svg>
+        } @else {
+          <div class="chart__empty">
+            <strong>Aún no hay datos para mostrar</strong>
+            <span
+              >Registra tu primer entrenamiento y aquí verás cómo avanza cada grupo muscular.</span
+            >
+          </div>
+        }
+      </article>
+
+      <article class="panel panel--series">
+        <h2 class="panel__title panel__title--sm">Series esta semana</h2>
+        <p class="panel__sub">Objetivo: 16-20 series por músculo</p>
+        <div class="series">
+          @for (row of seriesRows(); track row.key) {
+            <button
+              type="button"
+              class="series__row"
+              [class.is-active]="selectedMuscle() === row.key"
+              [attr.aria-pressed]="selectedMuscle() === row.key"
+              (click)="selectSeriesMuscle(row.key)"
+            >
+              <span class="series__top">
+                <span class="series__name">{{ row.label }}</span>
+                <span class="series__val">{{ row.series }} / 16-20</span>
+              </span>
+              <span class="series__bar">
+                <span class="series__fill" [style.width.%]="row.width"></span>
+                <span class="series__mark"></span>
+              </span>
+            </button>
+          }
+        </div>
+      </article>
+    </div>
+  }
+</section>

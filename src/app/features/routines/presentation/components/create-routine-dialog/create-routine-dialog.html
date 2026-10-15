@@ -1,0 +1,253 @@
+<div class="overlay" (click)="close()">
+  <section
+    class="dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="create-routine-title"
+    (click)="$event.stopPropagation()"
+    (keydown.escape)="close()"
+  >
+    <header class="dialog__head">
+      <div class="dialog__heading">
+        <h2 id="create-routine-title" class="dialog__title">
+          {{ isEditing() ? 'Editar rutina' : 'Crear rutina' }}
+        </h2>
+        <p class="dialog__subtitle">
+          {{
+            isEditing()
+              ? 'Actualiza los datos y ejercicios de esta rutina.'
+              : 'Ponle un nombre, elige los días y añade los ejercicios de la sesión.'
+          }}
+        </p>
+      </div>
+      <button type="button" class="dialog__close" aria-label="Cerrar" (click)="close()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path
+            d="M4 4l8 8M12 4l-8 8"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
+    </header>
+
+    @if (errorMessage(); as message) {
+      <p class="banner banner--error" role="alert">{{ message }}</p>
+    }
+
+    <form class="form" (submit)="submit($event)" novalidate>
+      <section class="group">
+        <h3 class="group__title">Datos básicos</h3>
+        <div class="grid-2">
+          <div class="field">
+            <label class="field-label" for="routine-name">Nombre de la rutina</label>
+            <input
+              id="routine-name"
+              class="input"
+              type="text"
+              placeholder="Ej. Empuje de pecho y hombro"
+              autofocus
+              [value]="name()"
+              (input)="onInput('name', $event)"
+            />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="routine-focus">Enfoque (opcional)</label>
+            <input
+              id="routine-focus"
+              class="input"
+              type="text"
+              placeholder="Ej. Empuje"
+              [value]="focusTag()"
+              (input)="onInput('focusTag', $event)"
+            />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="routine-intensity">Intensidad</label>
+            <select
+              id="routine-intensity"
+              class="select"
+              [value]="intensity()"
+              (change)="onIntensity($event)"
+            >
+              @for (option of intensities; track option) {
+                <option [value]="option" [selected]="intensity() === option">{{ option }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="routine-minutes">Duración (min)</label>
+            <input
+              id="routine-minutes"
+              class="input"
+              type="number"
+              min="5"
+              max="240"
+              [value]="estimatedMinutes()"
+              (input)="onMinutes($event)"
+            />
+            @if (durationError(); as error) {
+              <p class="field-error">{{ error }}</p>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="group">
+        <h3 class="group__title">Descripción</h3>
+        <div class="field">
+          <label class="field-label" for="routine-description">Descripción (opcional)</label>
+          <textarea
+            id="routine-description"
+            class="input textarea"
+            rows="2"
+            placeholder="Notas sobre esta rutina"
+            [value]="description()"
+            (input)="onInput('description', $event)"
+          ></textarea>
+        </div>
+      </section>
+
+      <section class="group">
+        <h3 class="group__title">Días de la semana</h3>
+        <div class="days" role="group" aria-label="Días de la semana">
+          @for (day of weekdays; track day.value) {
+            <button
+              type="button"
+              class="day"
+              [class.day--active]="isDaySelected(day.value)"
+              [attr.aria-pressed]="isDaySelected(day.value)"
+              (click)="toggleDay(day.value)"
+            >
+              {{ day.label }}
+            </button>
+          }
+        </div>
+      </section>
+
+      <section class="group">
+        <div class="group__head">
+          <h3 class="group__title">Ejercicios</h3>
+          <div class="group__actions">
+            <button type="button" class="btn btn--ghost btn--sm" (click)="addItem()">
+              Añadir ejercicio
+            </button>
+            <button
+              type="button"
+              class="btn btn--ghost btn--sm"
+              (click)="showExerciseForm.set(!showExerciseForm())"
+            >
+              Nuevo ejercicio
+            </button>
+          </div>
+        </div>
+
+        @if (showExerciseForm()) {
+          <div class="new-exercise">
+            <input
+              class="input"
+              type="text"
+              placeholder="Nombre del ejercicio"
+              [value]="newExerciseName()"
+              (input)="onNewExerciseName($event)"
+            />
+            <select class="select" [value]="newExerciseMuscle()" (change)="onMuscle($event)">
+              @for (option of muscleGroups; track option.key) {
+                <option [value]="option.key" [selected]="newExerciseMuscle() === option.key">
+                  {{ option.label }}
+                </option>
+              }
+            </select>
+            <button
+              type="button"
+              class="btn btn--primary btn--sm"
+              [disabled]="busy() || newExerciseName().trim().length === 0"
+              (click)="createExerciseInline($event)"
+            >
+              Crear
+            </button>
+          </div>
+        }
+
+        @if (items().length === 0) {
+          <p class="items__empty">Todavía no has añadido ejercicios.</p>
+        } @else {
+          <div class="items__header" aria-hidden="true">
+            <span>Ejercicio</span>
+            <span>Series</span>
+            <span>Reps</span>
+            <span>Peso (kg)</span>
+            <span></span>
+          </div>
+          <ul class="items__list">
+            @for (item of items(); track item.key) {
+              <li class="item">
+                <select
+                  class="select item__exercise"
+                  [value]="item.exerciseId"
+                  (change)="onExerciseChange(item.key, $any($event.target).value)"
+                >
+                  <option value="" disabled>Selecciona un ejercicio</option>
+                  @for (exercise of exercises(); track exercise.id) {
+                    <option [value]="exercise.id" [selected]="item.exerciseId === exercise.id">
+                      {{ exercise.name }}
+                    </option>
+                  }
+                </select>
+                <input
+                  class="input item__num"
+                  type="number"
+                  min="1"
+                  max="20"
+                  aria-label="Series"
+                  placeholder="—"
+                  [value]="item.sets"
+                  (input)="onItemNumber(item.key, 'sets', $event)"
+                />
+                <input
+                  class="input item__num"
+                  type="number"
+                  min="1"
+                  max="100"
+                  aria-label="Repeticiones"
+                  placeholder="—"
+                  [value]="item.reps"
+                  (input)="onItemNumber(item.key, 'reps', $event)"
+                />
+                <input
+                  class="input item__num"
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  aria-label="Peso en kg"
+                  placeholder="—"
+                  [value]="item.loadKg ?? ''"
+                  (input)="onItemNumber(item.key, 'loadKg', $event)"
+                />
+                <button
+                  type="button"
+                  class="item__remove"
+                  aria-label="Quitar ejercicio"
+                  (click)="removeItem(item.key)"
+                >
+                  ×
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <div class="dialog__footer">
+        <button type="button" class="btn btn--ghost" (click)="close()">Cancelar</button>
+        <button type="submit" class="btn btn--primary" [disabled]="!canSubmit()">
+          {{ busy() ? 'Guardando…' : isEditing() ? 'Guardar cambios' : 'Crear rutina' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

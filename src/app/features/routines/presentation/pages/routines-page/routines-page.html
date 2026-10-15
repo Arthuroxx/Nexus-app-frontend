@@ -1,0 +1,274 @@
+<div class="bg" aria-hidden="true"></div>
+
+<div class="page">
+  <header class="head">
+    <div class="head__text">
+      <h1 class="head__title">Rutinas</h1>
+      <p class="head__subtitle">Tu programa de fuerza, organizado día a día.</p>
+    </div>
+    <button type="button" class="btn-create" (click)="openCreate()">
+      <span class="btn-create__icon" aria-hidden="true">+</span>
+      Crear rutina
+    </button>
+  </header>
+
+  @if (error(); as message) {
+    @if (dismissedError() !== message) {
+      <div class="alert" role="alert">
+        <svg class="alert__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M12 8.5v4.5M12 16.5h.01M10.3 3.9 2.6 17.4A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3.1L13.7 3.9a2 2 0 0 0-3.4 0Z"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <div class="alert__body">
+          <p class="alert__title">Error interno del servidor.</p>
+          <p class="alert__message">{{ message }}</p>
+        </div>
+        <button type="button" class="alert__retry" (click)="retry()">Reintentar</button>
+        <button
+          type="button"
+          class="alert__close"
+          (click)="dismissError(message)"
+          aria-label="Cerrar aviso"
+        >
+          ×
+        </button>
+      </div>
+    }
+  }
+
+  @if (notice(); as message) {
+    <p class="notice" role="status">
+      {{ message }}
+      <button
+        type="button"
+        class="notice__close"
+        aria-label="Cerrar aviso"
+        (click)="routinesService.clearNotice()"
+      >
+        ×
+      </button>
+    </p>
+  }
+
+  @if (loading()) {
+    <p class="loading">Cargando tus rutinas…</p>
+  } @else if (showSurvey()) {
+    <app-level-survey (completed)="onSurveyCompleted($event)"></app-level-survey>
+  } @else {
+    <div class="controls">
+      <div class="segmented" role="tablist" aria-label="Vista de rutinas">
+        <button
+          type="button"
+          role="tab"
+          class="segmented__item"
+          [class.is-active]="view() === 'mine'"
+          [attr.aria-selected]="view() === 'mine'"
+          (click)="setView('mine')"
+        >
+          Mis rutinas
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="segmented__item"
+          [class.is-active]="view() === 'plan'"
+          [attr.aria-selected]="view() === 'plan'"
+          (click)="setView('plan')"
+        >
+          Programa recomendado
+        </button>
+      </div>
+
+      <div class="controls__level">
+        <span class="controls__label">Nivel</span>
+        <span class="level-chip">{{ levelLabel() }}</span>
+        <button type="button" class="btn-change" (click)="forceSurvey.set(true)">Cambiar</button>
+      </div>
+    </div>
+
+    <div class="week">
+      @for (day of weekStrip(); track day.value) {
+        <button
+          type="button"
+          class="day"
+          [class.is-selected]="day.routine && isDaySelected(day.value)"
+          [class.is-current]="isDayCurrent(day.value)"
+          [class.is-empty]="!day.routine"
+          [disabled]="!day.routine"
+          (click)="selectDayFor(day.value)"
+        >
+          <span class="day__label">{{ day.label }}</span>
+          <span class="day__routine">{{ day.routine?.name ?? 'Descanso' }}</span>
+        </button>
+      }
+    </div>
+
+    @if (selectedTab(); as tab) {
+      <div class="split">
+        <section class="detail">
+          <div class="detail__head">
+            <div class="pills">
+              @for (pill of tabs(); track pill.id) {
+                <button
+                  type="button"
+                  class="pill"
+                  [class.is-active]="isTabSelected(pill.id)"
+                  (click)="selectTab(pill.id)"
+                >
+                  {{ pill.name }}
+                </button>
+              }
+            </div>
+
+            @if (!tab.isPlan) {
+              <div class="detail__actions">
+                <button type="button" class="icon-btn" [disabled]="busy()" (click)="editSelected()">
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn icon-btn--danger"
+                  [disabled]="busy()"
+                  (click)="requestDelete(tab.id)"
+                >
+                  Eliminar
+                </button>
+              </div>
+            }
+          </div>
+
+          @if (isDeleting(tab.id)) {
+            <div class="confirm">
+              <p class="confirm__text">
+                ¿Eliminar «{{ tab.name }}»? Esta acción no se puede deshacer.
+              </p>
+              <div class="confirm__actions">
+                <button
+                  type="button"
+                  class="btn-reset"
+                  [disabled]="busy()"
+                  (click)="cancelDelete()"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  class="btn-danger"
+                  [disabled]="busy()"
+                  (click)="confirmDelete(tab.id)"
+                >
+                  {{ busy() ? 'Eliminando…' : 'Eliminar' }}
+                </button>
+              </div>
+            </div>
+          }
+
+          <h2 class="detail__title">{{ tab.name }}</h2>
+          <p class="detail__desc">{{ tab.description }}</p>
+
+          <div class="chips">
+            <span class="chip">{{ formatDays(tab.days) }}</span>
+            <span class="chip chip--red">{{ intensityLabel(tab.intensity) }}</span>
+            <span class="chip">{{ tab.minutes }} min</span>
+            <span class="chip">{{ tab.itemCount }} ejercicios</span>
+          </div>
+
+          <div class="progress">
+            <div class="progress__head">
+              <span class="progress__label">Progreso de hoy</span>
+              <span class="progress__count">{{ doneCount() }} de {{ tab.items.length }}</span>
+            </div>
+            <div class="progress__track">
+              <div class="progress__fill" [style.width.%]="progress()"></div>
+            </div>
+          </div>
+
+          @if (tab.items.length > 0) {
+            <ul class="exercises">
+              @for (item of tab.items; track item.key) {
+                <li class="exercises__item">
+                  <button
+                    type="button"
+                    class="exercise"
+                    [class.is-done]="isChecked(tab.id, item.key)"
+                    [attr.aria-pressed]="isChecked(tab.id, item.key)"
+                    (click)="toggleItem(tab.id, item.key)"
+                  >
+                    <span class="exercise__box" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="m5 12.5 4.2 4.2L19 7"
+                          stroke="currentColor"
+                          stroke-width="2.4"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <span class="exercise__name">{{ item.name }}</span>
+                    <span class="exercise__prescription">{{ item.prescription }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="detail__empty">Cargando ejercicios…</p>
+          }
+
+          <div class="detail__footer">
+            @if (tab.isPlan && !tab.isAdded) {
+              <button type="button" class="btn-add" [disabled]="busy()" (click)="addToMine(tab.id)">
+                Agregar a mis rutinas
+              </button>
+            } @else if (tab.isPlan && tab.isAdded) {
+              <span class="added-chip">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="m5 12.5 4.2 4.2L19 7"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                En mis rutinas
+              </span>
+            }
+            <button type="button" class="btn-reset" (click)="resetChecks(tab.id)">Reiniciar</button>
+          </div>
+        </section>
+
+        <aside class="params">
+          <h3 class="params__title">Parámetros del programa</h3>
+          <p class="params__subtitle">{{ programSubtitle() }}</p>
+          <ul class="params__list">
+            @for (block of parameters(); track block.label) {
+              <li class="param">
+                <span class="param__label">{{ block.label }}</span>
+                <span class="param__value">{{ block.value }}</span>
+                <span class="param__note">{{ block.note }}</span>
+              </li>
+            }
+          </ul>
+        </aside>
+      </div>
+    } @else {
+      <div class="empty">
+        <p class="empty__title">Aún no tienes rutinas</p>
+        <p class="empty__text">Crea una desde cero o añade un programa recomendado.</p>
+      </div>
+    }
+  }
+</div>
+
+@if (showDialog()) {
+  <app-create-routine-dialog
+    [routine]="editingRoutine()"
+    (closed)="closeDialog()"
+  ></app-create-routine-dialog>
+}
